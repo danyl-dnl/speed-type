@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel 2025 | Speed Typing Contest</title>
+    
+    <link rel="icon" type="image/jpeg" href="/excellogo.png">   
+     
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
+</head>
+<body>
+
+    <div id="tsparticles"></div>
+
+    <div id="name-modal" class="modal-overlay" style="display: flex;">
+        <div class="modal-content">
+            <img src="logo.jpg" alt="Excel 2025 Logo" class="modal-logo">
+            <h2>PARTICIPANT REGISTRATION</h2>
+            <input type="text" id="username-input" placeholder="Enter Name to Start" autofocus>
+            <button class="gold-btn" onclick="startGame()">START CONTEST</button>
+        </div>
+    </div>
+
+    <header>
+        <img src="logo.jpg" alt="Excel Logo" class="header-logo">
+        <div class="tagline">INSPIRE | INNOVATE | ENGINEER</div>
+    </header>
+
+    <main class="container">
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-label">Words Per Minute</div>
+                <span id="wpm">0</span>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Accuracy</div>
+                <span id="accuracy">100%</span>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Seconds Left</div>
+                <span id="timer">60</span>
+            </div>
+        </div>
+
+        <div class="typing-card">
+            <div id="quote-display">Press "Start New Contest" to begin...</div>
+            <textarea id="quote-input" placeholder="Typing area..." disabled></textarea>
+        </div>
+
+        <section class="leaderboard-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">🏆 TOP 5 PERFORMERS</h2>
+                <button class="gold-btn" onclick="showNameEntry()">START NEW CONTEST</button>
+            </div>
+            
+            <div class="leaderboard-header">
+                <span style="flex: 2; text-align: left; padding-left: 10px;">RANK / NAME</span>
+                <span style="flex: 1; text-align: center;">ACCURACY</span>
+                <span style="flex: 1; text-align: right;">SPEED</span>
+            </div>
+            
+            <ul id="leaderboard-list">
+                </ul>
+        </section>
+    </main>
+
+    <div id="result-overlay" class="result-overlay">
+        <div class="result-card">
+            <h2 style="color: #f3b03d;">CONTEST FINISHED</h2>
+            
+            <div style="display: flex; justify-content: center; gap: 30px; margin: 20px 0;">
+                <div class="final-score">
+                    <h1 id="final-wpm-display">0</h1>
+                    <p>WPM</p>
+                </div>
+                <div class="final-score">
+                    <h1 id="final-acc-display">100%</h1>
+                    <p>ACCURACY</p>
+                </div>
+            </div>
+
+            <p id="participant-congrats" style="color: #ccc; margin-bottom: 20px;"></p>
+            <button class="gold-btn" onclick="closeResult()">VIEW LEADERBOARD</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
