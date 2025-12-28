@@ -170,7 +170,7 @@ function closeResult() {
     document.querySelector('.leaderboard-section').scrollIntoView({ behavior: 'smooth' });
 }
 
-// --- 4. LOCAL STORAGE OPERATIONS (OFFLINE) ---
+// --- 4. LOCAL STORAGE OPERATIONS  ---
 
 function saveToLocalStorage(name, wpm, acc) {
     if (!name) name = "Anonymous";
