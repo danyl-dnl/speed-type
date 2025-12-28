@@ -1,22 +1,4 @@
-// --- 1. FIREBASE CONFIGURATION ---
-const firebaseConfig = {
-  apiKey: "AIzaSyD5uPzZrN6Rxjidtz7M6LlAiNhw9nVJP3Q",
-  authDomain: "speed-type-407bd.firebaseapp.com",
-  databaseURL: "https://speed-type-407bd-default-rtdb.firebaseio.com/",
-  projectId: "speed-type-407bd",
-  storageBucket: "speed-type-407bd.firebasestorage.app",
-  messagingSenderId: "353699668484",
-  appId: "1:353699668484:web:d7bad1dc022cb582a10b51",
-  measurementId: "G-KNCG5RDJ8N"
-};
-
-// Initialize Firebase
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const database = firebase.database();
-
-// --- 2. GAME VARIABLES ---
+// --- 1. GAME VARIABLES ---
 const quotes = [
 
     "Technology plays an important role in how we study, work, and share information today. Students attend online classes, professionals send emails, and teams collaborate using digital tools. Typing accurately, even with small details like the @ symbol, helps improve communication and efficiency.",
@@ -44,7 +26,12 @@ const wpmDisplay = document.getElementById('wpm');
 const accDisplay = document.getElementById('accuracy');
 const timerDisplay = document.getElementById('timer');
 
-// --- 3. FLOW CONTROL ---
+// Initialize Leaderboard on Load
+document.addEventListener('DOMContentLoaded', () => {
+    updateLeaderboardUI();
+});
+
+// --- 2. FLOW CONTROL ---
 
 function showNameEntry() {
     wpmDisplay.innerText = "0";
@@ -67,7 +54,6 @@ function startGame() {
     currentPlayer = name;
     document.getElementById('name-modal').style.display = 'none';
     
-    // Reset Game State
     timer = 60;
     timerDisplay.innerText = "60";
     wpmDisplay.innerText = "0";
@@ -95,7 +81,7 @@ function renderNextQuote() {
     quoteInput.value = '';
 }
 
-// --- 4. TYPING LOGIC ---
+// --- 3. TYPING LOGIC ---
 
 quoteInput.addEventListener('input', () => {
     if (isGameSaved) return;
@@ -176,7 +162,7 @@ function finishGame() {
     document.getElementById('participant-congrats').innerText = `Great job, ${currentPlayer}!`;
     document.getElementById('result-overlay').style.display = 'flex';
     
-    saveToFirebase(currentPlayer, finalWpm, finalAcc);
+    saveToLocalStorage(currentPlayer, finalWpm, finalAcc);
 }
 
 function closeResult() {
@@ -184,42 +170,49 @@ function closeResult() {
     document.querySelector('.leaderboard-section').scrollIntoView({ behavior: 'smooth' });
 }
 
-// --- 5. FIREBASE OPERATIONS ---
+// --- 4. LOCAL STORAGE OPERATIONS (OFFLINE) ---
 
-function saveToFirebase(name, wpm, acc) {
+function saveToLocalStorage(name, wpm, acc) {
     if (!name) name = "Anonymous";
-    
-    const scoreData = {
-        username: name,
-        speed: parseInt(wpm),
-        accuracy: acc,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    };
 
-    database.ref('leaderboard/').push(scoreData)
-        .then(() => console.log("Score Saved"))
-        .catch((e) => console.error(e));
+    // 1. Get existing data
+    let leaderboard = JSON.parse(localStorage.getItem('excel_leaderboard')) || [];
+
+    // 2. Add new score
+    leaderboard.push({
+        username: name,
+        speed: wpm,
+        accuracy: acc,
+        timestamp: Date.now()
+    });
+
+    // 3. Sort by Speed (Descending)
+    leaderboard.sort((a, b) => b.speed - a.speed);
+
+    // 4. Keep only Top 5
+    if (leaderboard.length > 5) {
+        leaderboard = leaderboard.slice(0, 5);
+    }
+
+    // 5. Save back to Local Storage
+    localStorage.setItem('excel_leaderboard', JSON.stringify(leaderboard));
+
+    // 6. Update UI
+    updateLeaderboardUI();
 }
 
-// --- LEADERBOARD ---
-database.ref('leaderboard/').orderByChild('speed').limitToLast(5).on('value', (snapshot) => {
+function updateLeaderboardUI() {
     const list = document.getElementById('leaderboard-list');
     list.innerHTML = "";
-    let entries = [];
     
-    snapshot.forEach(child => {
-        const data = child.val();
-        if (data) entries.push(data);
-    });
-    
-    entries.sort((a, b) => b.speed - a.speed);
-    
-    entries.forEach((data, index) => {
+    // Get data from local storage
+    const leaderboard = JSON.parse(localStorage.getItem('excel_leaderboard')) || [];
+
+    leaderboard.forEach((data, index) => {
         const li = document.createElement('li');
         const displayName = data.username ? data.username.toUpperCase() : "UNKNOWN";
         const displayAcc = data.accuracy || "100%";
         
-        // --- UI STRUCTURE ---
         li.innerHTML = `
             <div style="flex: 2; display: flex; align-items: center; gap: 15px;">
                 <span style="color: #f3b03d; font-weight: 800; min-width: 40px; text-align: left;">#${index + 1}</span>
@@ -238,12 +231,20 @@ database.ref('leaderboard/').orderByChild('speed').limitToLast(5).on('value', (s
         list.appendChild(li);
     });
 
-    if (entries.length === 0) {
+    if (leaderboard.length === 0) {
         list.innerHTML = "<li style='justify-content:center; color:#666; padding: 20px;'>No scores yet. Start typing!</li>";
     }
-});
+}
 
-// --- 6. PARTICLES ---
+// Helper to clear data if needed
+function clearLeaderboard() {
+    if(confirm("Are you sure you want to RESET the leaderboard? All scores will be deleted.")) {
+        localStorage.removeItem('excel_leaderboard');
+        updateLeaderboardUI();
+    }
+}
+
+// --- 5. PARTICLES ---
 (async () => {
   await tsParticles.load("tsparticles", {
     particles: {

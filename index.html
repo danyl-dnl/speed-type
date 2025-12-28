@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excel 2025 | Speed Typing Contest</title>
     
-    <link rel="icon" type="image/jpeg" href="/excellogo.png">   
-     
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
+    
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
     
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.0.6/tsparticles.slim.bundle.min.js"></script>
 </head>
 <body>
@@ -22,7 +20,7 @@
         <div class="modal-content">
             <img src="logo.jpg" alt="Excel 2025 Logo" class="modal-logo">
             <h2>PARTICIPANT REGISTRATION</h2>
-            <input type="text" id="username-input" placeholder="Enter Name to Start" autofocus>
+            <input type="text" id="username-input" placeholder="Enter Name to Start" autofocus autocomplete="off">
             <button class="gold-btn" onclick="startGame()">START CONTEST</button>
         </div>
     </div>
@@ -50,13 +48,25 @@
 
         <div class="typing-card">
             <div id="quote-display">Press "Start New Contest" to begin...</div>
-            <textarea id="quote-input" placeholder="Typing area..." disabled></textarea>
+            <textarea id="quote-input" 
+                      placeholder="Typing area..." 
+                      disabled 
+                      autocomplete="off" 
+                      autocorrect="off" 
+                      autocapitalize="off" 
+                      spellcheck="false"
+                      data-gramm="false"
+                      wt-ignore-input="true">
+            </textarea>
         </div>
 
         <section class="leaderboard-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0;">🏆 TOP 5 PERFORMERS</h2>
-                <button class="gold-btn" onclick="showNameEntry()">START NEW CONTEST</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="gold-btn" style="background:#333; color:#fff;" onclick="clearLeaderboard()">RESET</button>
+                    <button class="gold-btn" onclick="showNameEntry()">START NEW CONTEST</button>
+                </div>
             </div>
             
             <div class="leaderboard-header">
