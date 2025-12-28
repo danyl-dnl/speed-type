@@ -73,44 +73,102 @@ function startGame() {
 function renderNextQuote() {
     const quote = quotes[Math.floor(Math.random() * quotes.length)];
     quoteDisplay.innerHTML = '';
-    quote.split('').forEach(char => {
-        const span = document.createElement('span');
-        span.innerText = char;
-        quoteDisplay.appendChild(span);
+    
+    // Split quote into words to create word-groups
+    quote.split(' ').forEach((word, index, arr) => {
+        // Create Word container
+        const wordSpan = document.createElement('span');
+        wordSpan.className = 'word';
+        
+        // Add letters to word
+        word.split('').forEach(char => {
+            const charSpan = document.createElement('span');
+            charSpan.innerText = char;
+            wordSpan.appendChild(charSpan);
+        });
+        
+        quoteDisplay.appendChild(wordSpan);
+
+        // Add Space (except after last word)
+        if (index < arr.length - 1) {
+            const spaceSpan = document.createElement('span');
+            spaceSpan.className = 'space';
+            spaceSpan.innerHTML = '&nbsp;'; // Non-breaking space for visual
+            quoteDisplay.appendChild(spaceSpan);
+        }
     });
+    
     quoteInput.value = '';
 }
 
-// --- 3. TYPING LOGIC ---
+// --- 3. TYPING LOGIC (WORD BY WORD) ---
 
 quoteInput.addEventListener('input', () => {
     if (isGameSaved) return;
 
-    const arrayQuote = quoteDisplay.querySelectorAll('span');
-    const arrayValue = quoteInput.value.split('');
+    // Split input by spaces to get array of words typed
+    const inputWords = quoteInput.value.split(' ');
     
-    if (!isPlaying && arrayValue.length > 0) {
+    if (!isPlaying && quoteInput.value.length > 0) {
         isPlaying = true;
         startTime = new Date();
         startTimer();
     }
 
-    let correctChars = 0;
+    // Get all DOM elements
+    const quoteWordSpans = quoteDisplay.querySelectorAll('.word');
+    const quoteSpaceSpans = quoteDisplay.querySelectorAll('.space');
+    
+    let allWordsCorrect = true;
 
-    arrayQuote.forEach((span, i) => {
-        const char = arrayValue[i];
-        if (char == null) {
-            span.className = '';
-        } else if (char === span.innerText) {
-            span.className = 'correct';
-            correctChars++;
+    // LOOP 1: Check Words
+    quoteWordSpans.forEach((wordSpan, i) => {
+        const typedWord = inputWords[i] || ''; 
+        const charSpans = wordSpan.querySelectorAll('span');
+        
+        const isWordCompleted = i < inputWords.length - 1;
+
+        // Check chars inside this word
+        let isWordRefect = true;
+        charSpans.forEach((charSpan, j) => {
+            const typedChar = typedWord[j];
+            const targetChar = charSpan.innerText;
+
+            if (typedChar == null) {
+                // Not typed yet
+                charSpan.className = '';
+                isWordRefect = false;
+                if (isWordCompleted) charSpan.className = 'incorrect';
+            } else if (typedChar === targetChar) {
+                charSpan.className = 'correct';
+            } else {
+                charSpan.className = 'incorrect';
+                isWordRefect = false;
+            }
+        });
+
+        if (!isWordRefect) allWordsCorrect = false;
+    });
+
+    // LOOP 2: Check Spaces
+    quoteSpaceSpans.forEach((spaceSpan, i) => {
+        // If we have typed past this space (inputWords length > i + 1)
+        if (i < inputWords.length - 1) {
+            spaceSpan.className = 'space correct';
         } else {
-            span.className = 'incorrect';
+            spaceSpan.className = 'space'; // Default (invisible/waiting)
         }
     });
 
-    const isFinished = Array.from(arrayQuote).every(s => s.classList.contains('correct'));
-    if (isFinished && arrayValue.length === arrayQuote.length) {
+    // CHECK FINISH:
+    const lastWordIdx = quoteWordSpans.length - 1;
+    const lastTyped = inputWords[lastWordIdx];
+    const lastTarget = quoteWordSpans[lastWordIdx].innerText;
+    
+    if (inputWords.length === quoteWordSpans.length && 
+        lastTyped === lastTarget && 
+        allWordsCorrect) {
+        
         totalCharsBeforeCurrentQuote += quoteInput.value.length;
         renderNextQuote();
     }
@@ -170,42 +228,28 @@ function closeResult() {
     document.querySelector('.leaderboard-section').scrollIntoView({ behavior: 'smooth' });
 }
 
-// --- 4. LOCAL STORAGE OPERATIONS  ---
+// --- 4. LOCAL STORAGE OPERATIONS ---
 
 function saveToLocalStorage(name, wpm, acc) {
     if (!name) name = "Anonymous";
-
-    // 1. Get existing data
     let leaderboard = JSON.parse(localStorage.getItem('excel_leaderboard')) || [];
-
-    // 2. Add new score
     leaderboard.push({
         username: name,
         speed: wpm,
         accuracy: acc,
         timestamp: Date.now()
     });
-
-    // 3. Sort by Speed (Descending)
     leaderboard.sort((a, b) => b.speed - a.speed);
-
-    // 4. Keep only Top 5
     if (leaderboard.length > 5) {
         leaderboard = leaderboard.slice(0, 5);
     }
-
-    // 5. Save back to Local Storage
     localStorage.setItem('excel_leaderboard', JSON.stringify(leaderboard));
-
-    // 6. Update UI
     updateLeaderboardUI();
 }
 
 function updateLeaderboardUI() {
     const list = document.getElementById('leaderboard-list');
     list.innerHTML = "";
-    
-    // Get data from local storage
     const leaderboard = JSON.parse(localStorage.getItem('excel_leaderboard')) || [];
 
     leaderboard.forEach((data, index) => {
@@ -236,9 +280,8 @@ function updateLeaderboardUI() {
     }
 }
 
-// Helper to clear data if needed
 function clearLeaderboard() {
-    if(confirm("Are you sure you want to RESET the leaderboard? All scores will be deleted.")) {
+    if(confirm("Are you sure you want to RESET the leaderboard?")) {
         localStorage.removeItem('excel_leaderboard');
         updateLeaderboardUI();
     }
